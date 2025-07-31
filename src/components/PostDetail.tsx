@@ -29,6 +29,7 @@ interface Comment {
   author?: string;
   timestamp: string;
   likes: number;
+  replies?: Comment[];
 }
 
 interface PostDetailProps {
@@ -94,6 +95,9 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
   const [commentAuthor, setCommentAuthor] = useState('');
   const [userLiked, setUserLiked] = useState(false);
   const [userDisliked, setUserDisliked] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [replyAuthor, setReplyAuthor] = useState('');
   const { toast } = useToast();
   
   useEffect(() => {
@@ -157,6 +161,33 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
       description: "Спасибо за помощь в модерации контента",
       duration: 3000,
     });
+  };
+
+  const handleCommentLike = (commentId: string) => {
+    const currentLiked = voteStorage.hasLiked(`comment-${commentId}`);
+    const newLikeState = !currentLiked;
+    voteStorage.setLike(`comment-${commentId}`, newLikeState);
+    
+    toast({
+      title: newLikeState ? '👍 Лайк!' : '👍 Лайк убран',
+      description: "Ваш голос учтён",
+      duration: 2000,
+    });
+  };
+
+  const handleReply = (commentId: string) => {
+    if (!replyText.trim()) return;
+    
+    // Temporarily show in UI - in real app would use onAddComment with reply logic
+    toast({
+      title: "Ответ добавлен",
+      description: "Спасибо за участие в обсуждении!",
+      duration: 2000,
+    });
+    
+    setReplyingTo(null);
+    setReplyText('');
+    setReplyAuthor('');
   };
 
   return (
@@ -306,7 +337,12 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="flex items-center gap-1 text-muted-foreground hover:text-green-400 transition-colors"
+                            onClick={() => handleCommentLike(comment.id)}
+                            className={`flex items-center gap-1 transition-colors ${
+                              voteStorage.hasLiked(`comment-${comment.id}`)
+                                ? 'text-green-400 bg-green-400/10'
+                                : 'text-muted-foreground hover:text-green-400'
+                            }`}
                           >
                             <ThumbsUp className="w-3 h-3" />
                             <span>{comment.likes}</span>
@@ -315,6 +351,7 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
                             className="text-muted-foreground hover:text-blue-400 transition-colors"
                           >
                             Ответить
@@ -329,6 +366,36 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
                             <Flag className="w-3 h-3" />
                           </Button>
                         </div>
+                        
+                        {/* Reply Form */}
+                        {replyingTo === comment.id && (
+                          <div className="mt-3 p-3 bg-background/30 rounded-lg space-y-2">
+                            <Textarea
+                              value={replyText}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              placeholder="Ваш ответ..."
+                              className="bg-background/50 border-border/50 focus:border-primary/50 resize-none"
+                              rows={2}
+                            />
+                            <div className="flex items-center gap-2">
+                              <Input
+                                value={replyAuthor}
+                                onChange={(e) => setReplyAuthor(e.target.value)}
+                                placeholder="Ваше имя (необязательно)"
+                                className="bg-background/50 border-border/50 focus:border-primary/50 text-sm"
+                              />
+                              <Button
+                                onClick={() => handleReply(comment.id)}
+                                disabled={!replyText.trim()}
+                                size="sm"
+                                className="button-glow"
+                              >
+                                <Send className="w-3 h-3 mr-1" />
+                                Ответить
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>

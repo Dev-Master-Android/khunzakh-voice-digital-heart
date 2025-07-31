@@ -5,9 +5,13 @@ import { TrendingUp, Clock, FolderOpen } from "lucide-react";
 interface NavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  selectedCategory?: string | null;
+  onCategoryChange?: (category: string | null) => void;
 }
 
-export function Navigation({ activeTab, onTabChange }: NavigationProps) {
+const categories = ['Идея', 'Жалоба', 'Проблема', 'Предложение', 'Успех'];
+
+export function Navigation({ activeTab, onTabChange, selectedCategory, onCategoryChange }: NavigationProps) {
   return (
     <div className="sticky top-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border/50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -41,6 +45,35 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
             </TabsTrigger>
           </TabsList>
         </Tabs>
+        
+        {/* Categories Filter */}
+        {activeTab === 'categories' && (
+          <div className="flex flex-wrap gap-2 mt-4">
+            <button
+              onClick={() => onCategoryChange?.(null)}
+              className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                !selectedCategory 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-card/50 text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Все категории
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => onCategoryChange?.(category)}
+                className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                  selectedCategory === category 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-card/50 text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

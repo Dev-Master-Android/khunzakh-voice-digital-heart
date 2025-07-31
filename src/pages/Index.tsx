@@ -86,23 +86,50 @@ const Index = () => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [postDetailOpen, setPostDetailOpen] = useState(false);
 
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
   useEffect(() => {
-    let sorted = [...posts];
+    let filtered = [...posts];
     
+    // Filter by category if selected
+    if (activeTab === 'categories' && selectedCategory) {
+      filtered = filtered.filter(post => post.category === selectedCategory);
+    }
+    
+    // Sort based on active tab
     switch (activeTab) {
       case 'popular':
-        sorted = sorted.sort((a, b) => (b.likes - b.dislikes) - (a.likes - a.dislikes));
+        filtered = filtered.sort((a, b) => b.likes - a.likes);
         break;
       case 'new':
-        sorted = sorted.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        filtered = filtered.sort((a, b) => {
+          const timeA = new Date(a.timestamp.includes('назад') ? Date.now() - parseTimeAgo(a.timestamp) : a.timestamp).getTime();
+          const timeB = new Date(b.timestamp.includes('назад') ? Date.now() - parseTimeAgo(b.timestamp) : b.timestamp).getTime();
+          return timeB - timeA;
+        });
         break;
       case 'categories':
-        // Group by categories, show all
+        // Show all or filtered by category
         break;
     }
     
-    setFilteredPosts(sorted);
-  }, [posts, activeTab]);
+    setFilteredPosts(filtered);
+  }, [posts, activeTab, selectedCategory]);
+
+  const parseTimeAgo = (timeStr: string): number => {
+    const match = timeStr.match(/(\d+)\s*(час|минут|день|секунд)/);
+    if (!match) return 0;
+    const value = parseInt(match[1]);
+    const unit = match[2];
+    
+    switch (unit) {
+      case 'секунд': return value * 1000;
+      case 'минут': return value * 60 * 1000;
+      case 'час': return value * 60 * 60 * 1000;
+      case 'день': return value * 24 * 60 * 60 * 1000;
+      default: return 0;
+    }
+  };
 
   const handleCreatePost = (postData: any) => {
     const newPost: Post = {
@@ -172,7 +199,12 @@ const Index = () => {
       
       <Header onCreatePost={() => setCreatePostOpen(true)} />
       
-      <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <Navigation 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+      />
       
       <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {filteredPosts.length > 0 ? (
