@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { spamProtection } from "@/lib/utils-school";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,7 +58,6 @@ export function CreatePostDialog({ open, onOpenChange, onSubmit }: CreatePostDia
     }
 
     // Check spam protection
-    const { spamProtection } = require("@/lib/utils-school");
     if (!spamProtection.canPost()) {
       const remaining = Math.ceil(spamProtection.getCooldownRemaining() / 1000);
       toast({

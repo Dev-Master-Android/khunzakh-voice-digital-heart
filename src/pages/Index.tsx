@@ -115,8 +115,8 @@ const Index = () => {
         post.id === postId 
           ? {
               ...post,
-              likes: voteType === 'like' ? post.likes + 1 : post.likes - 1,
-              dislikes: voteType === 'dislike' ? post.dislikes + 1 : post.dislikes - 1
+              likes: voteType === 'like' ? post.likes + 1 : post.likes,
+              dislikes: voteType === 'dislike' ? post.dislikes + 1 : post.dislikes
             }
           : post
       )
@@ -139,7 +139,7 @@ const Index = () => {
       
       <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {filteredPosts.length > 0 ? (
-          <div className="masonry-grid">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredPosts.map((post, index) => (
               <PostCard 
                 key={post.id} 

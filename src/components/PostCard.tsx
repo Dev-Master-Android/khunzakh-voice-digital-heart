@@ -59,11 +59,18 @@ export function PostCard({ post, onClick, onVote }: PostCardProps) {
       // Remove vote if clicking same button
       voteStorage.removeVote(post.id);
       setUserVote(null);
-      onVote?.(post.id, voteType === 'like' ? 'dislike' : 'like'); // Opposite to subtract
+      onVote?.(post.id, voteType);
     } else {
-      // Set new vote
+      // Set new vote (remove previous vote if exists)
+      const previousVote = userVote;
       voteStorage.setVote(post.id, voteType);
       setUserVote(voteType);
+      
+      // If had previous vote, remove it first
+      if (previousVote) {
+        onVote?.(post.id, previousVote);
+      }
+      // Then add new vote
       onVote?.(post.id, voteType);
       
       toast({
@@ -112,49 +119,51 @@ export function PostCard({ post, onClick, onVote }: PostCardProps) {
                 {post.content}
               </p>
               
-              <div className="flex items-center gap-4 text-sm">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => handleVote(e, 'like')}
-                  className={`flex items-center gap-1 transition-all duration-300 ${
-                    userVote === 'like' 
-                      ? 'text-green-400 bg-green-400/10' 
-                      : 'text-muted-foreground hover:text-green-400'
-                  } ${isAnimating && userVote === 'like' ? 'animate-bounce' : ''}`}
-                >
-                  <ThumbsUp className="w-4 h-4" />
-                  <span>{post.likes}</span>
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => handleVote(e, 'dislike')}
-                  className={`flex items-center gap-1 transition-all duration-300 ${
-                    userVote === 'dislike' 
-                      ? 'text-red-400 bg-red-400/10' 
-                      : 'text-muted-foreground hover:text-red-400'
-                  } ${isAnimating && userVote === 'dislike' ? 'animate-bounce' : ''}`}
-                >
-                  <ThumbsDown className="w-4 h-4" />
-                  <span>{post.dislikes}</span>
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex items-center gap-1 text-muted-foreground hover:text-blue-400 transition-colors"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>{post.comments}</span>
-                </Button>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => handleVote(e, 'like')}
+                    className={`flex items-center gap-1 transition-all duration-300 ${
+                      userVote === 'like' 
+                        ? 'text-green-400 bg-green-400/10' 
+                        : 'text-muted-foreground hover:text-green-400'
+                    } ${isAnimating && userVote === 'like' ? 'animate-bounce' : ''}`}
+                  >
+                    <ThumbsUp className="w-4 h-4" />
+                    <span>{post.likes}</span>
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => handleVote(e, 'dislike')}
+                    className={`flex items-center gap-1 transition-all duration-300 ${
+                      userVote === 'dislike' 
+                        ? 'text-red-400 bg-red-400/10' 
+                        : 'text-muted-foreground hover:text-red-400'
+                    } ${isAnimating && userVote === 'dislike' ? 'animate-bounce' : ''}`}
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                    <span>{post.dislikes}</span>
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-1 text-muted-foreground hover:text-blue-400 transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>{post.comments}</span>
+                  </Button>
+                </div>
                 
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleReport}
-                  className="flex items-center gap-1 ml-auto text-muted-foreground hover:text-orange-400 transition-colors"
+                  className="flex items-center gap-1 text-muted-foreground hover:text-orange-400 transition-colors"
                 >
                   <Flag className="w-4 h-4" />
                 </Button>
