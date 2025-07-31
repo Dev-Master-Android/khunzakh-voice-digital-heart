@@ -21,8 +21,13 @@ export const voteStorage = {
   setLike: (postId: string, liked: boolean) => {
     try {
       const likes = voteStorage.getLikes();
+      const dislikes = voteStorage.getDislikes();
+      
       if (liked) {
         likes[postId] = true;
+        // Remove dislike if setting like
+        delete dislikes[postId];
+        localStorage.setItem('schoolDislikes', JSON.stringify(dislikes));
       } else {
         delete likes[postId];
       }
@@ -35,8 +40,13 @@ export const voteStorage = {
   setDislike: (postId: string, disliked: boolean) => {
     try {
       const dislikes = voteStorage.getDislikes();
+      const likes = voteStorage.getLikes();
+      
       if (disliked) {
         dislikes[postId] = true;
+        // Remove like if setting dislike
+        delete likes[postId];
+        localStorage.setItem('schoolLikes', JSON.stringify(likes));
       } else {
         delete dislikes[postId];
       }

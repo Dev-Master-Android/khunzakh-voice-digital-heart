@@ -4,7 +4,7 @@ import { Navigation } from "@/components/Navigation";
 import { PostCard } from "@/components/PostCard";
 import { CreatePostDialog } from "@/components/CreatePostDialog";
 import { PostDetail } from "@/components/PostDetail";
-import { generateId, formatTimeAgo } from "@/lib/utils-school";
+import { generateId, formatTimeAgo, voteStorage } from "@/lib/utils-school";
 
 interface Comment {
   id: string;
@@ -12,6 +12,8 @@ interface Comment {
   author?: string;
   timestamp: string;
   likes: number;
+  dislikes: number;
+  replies?: Comment[];
 }
 
 interface Post {
@@ -41,7 +43,9 @@ const initialPosts: Post[] = [
         content: 'Отличная идея! Поддерживаю полностью',
         author: 'Аноним',
         timestamp: '1 час назад',
-        likes: 3
+        likes: 3,
+        dislikes: 0,
+        replies: []
       }
     ],
     timestamp: '2 часа назад'
@@ -154,15 +158,45 @@ const Index = () => {
 
   const handleVote = (postId: string, voteType: 'like' | 'dislike', isActive: boolean) => {
     setPosts(prevPosts => 
-      prevPosts.map(post => 
-        post.id === postId 
-          ? {
-              ...post,
-              likes: voteType === 'like' ? (isActive ? post.likes + 1 : post.likes - 1) : post.likes,
-              dislikes: voteType === 'dislike' ? (isActive ? post.dislikes + 1 : post.dislikes - 1) : post.dislikes
+      prevPosts.map(post => {
+        if (post.id === postId) {
+          const wasLiked = voteStorage.hasLiked(postId);
+          const wasDisliked = voteStorage.hasDisliked(postId);
+          
+          if (voteType === 'like') {
+            let newLikes = post.likes;
+            let newDislikes = post.dislikes;
+            
+            if (isActive) {
+              newLikes = post.likes + 1;
+              // If was disliked, remove dislike
+              if (wasDisliked) {
+                newDislikes = post.dislikes - 1;
+              }
+            } else {
+              newLikes = post.likes - 1;
             }
-          : post
-      )
+            
+            return { ...post, likes: newLikes, dislikes: newDislikes };
+          } else {
+            let newLikes = post.likes;
+            let newDislikes = post.dislikes;
+            
+            if (isActive) {
+              newDislikes = post.dislikes + 1;
+              // If was liked, remove like
+              if (wasLiked) {
+                newLikes = post.likes - 1;
+              }
+            } else {
+              newDislikes = post.dislikes - 1;
+            }
+            
+            return { ...post, likes: newLikes, dislikes: newDislikes };
+          }
+        }
+        return post;
+      })
     );
   };
 
@@ -172,7 +206,9 @@ const Index = () => {
       content: commentData.content,
       author: commentData.author || 'Аноним',
       timestamp: formatTimeAgo(new Date()),
-      likes: 0
+      likes: 0,
+      dislikes: 0,
+      replies: []
     };
 
     setPosts(prevPosts => 
@@ -184,6 +220,84 @@ const Index = () => {
             }
           : post
       )
+    );
+  };
+
+  const handleAddReply = (postId: string, commentId: string, reply: { content: string; author?: string }) => {
+    const newReply: Comment = {
+      id: generateId(),
+      content: reply.content,
+      author: reply.author,
+      timestamp: formatTimeAgo(new Date()),
+      likes: 0,
+      dislikes: 0,
+      replies: []
+    };
+    
+    setPosts(prevPosts =>
+      prevPosts.map(post => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            comments: post.comments.map(comment =>
+              comment.id === commentId
+                ? { ...comment, replies: [...(comment.replies || []), newReply] }
+                : comment
+            )
+          };
+        }
+        return post;
+      })
+    );
+  };
+
+  const handleCommentVote = (postId: string, commentId: string, voteType: 'like' | 'dislike', isActive: boolean) => {
+    setPosts(prevPosts =>
+      prevPosts.map(post => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            comments: post.comments.map(comment => {
+              if (comment.id === commentId) {
+                const wasLiked = voteStorage.hasLiked(`comment-${commentId}`);
+                const wasDisliked = voteStorage.hasDisliked(`comment-${commentId}`);
+                
+                if (voteType === 'like') {
+                  let newLikes = comment.likes;
+                  let newDislikes = comment.dislikes || 0;
+                  
+                  if (isActive) {
+                    newLikes = comment.likes + 1;
+                    if (wasDisliked) {
+                      newDislikes = (comment.dislikes || 0) - 1;
+                    }
+                  } else {
+                    newLikes = comment.likes - 1;
+                  }
+                  
+                  return { ...comment, likes: newLikes, dislikes: newDislikes };
+                } else {
+                  let newLikes = comment.likes;
+                  let newDislikes = (comment.dislikes || 0);
+                  
+                  if (isActive) {
+                    newDislikes = (comment.dislikes || 0) + 1;
+                    if (wasLiked) {
+                      newLikes = comment.likes - 1;
+                    }
+                  } else {
+                    newDislikes = (comment.dislikes || 0) - 1;
+                  }
+                  
+                  return { ...comment, likes: newLikes, dislikes: newDislikes };
+                }
+              }
+              return comment;
+            })
+          };
+        }
+        return post;
+      })
     );
   };
 
@@ -250,6 +364,8 @@ const Index = () => {
         onOpenChange={setPostDetailOpen}
         onVote={handleVote}
         onAddComment={handleAddComment}
+        onAddReply={handleAddReply}
+        onCommentVote={handleCommentVote}
       />
     </div>
   );

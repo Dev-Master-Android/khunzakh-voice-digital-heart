@@ -29,6 +29,7 @@ interface Comment {
   author?: string;
   timestamp: string;
   likes: number;
+  dislikes: number;
   replies?: Comment[];
 }
 
@@ -48,6 +49,8 @@ interface PostDetailProps {
   onOpenChange: (open: boolean) => void;
   onVote?: (postId: string, voteType: 'like' | 'dislike', isActive: boolean) => void;
   onAddComment?: (postId: string, comment: { content: string; author?: string }) => void;
+  onAddReply?: (postId: string, commentId: string, reply: { content: string; author?: string }) => void;
+  onCommentVote?: (postId: string, commentId: string, voteType: 'like' | 'dislike', isActive: boolean) => void;
 }
 
 const categoryIcons: Record<string, string> = {
@@ -73,24 +76,30 @@ const mockComments: Comment[] = [
     content: 'Отличная идея! Поддерживаю полностью. Давно нужно было это сделать.',
     author: 'Анна М.',
     timestamp: '2 часа назад',
-    likes: 5
+    likes: 5,
+    dislikes: 0,
+    replies: []
   },
   {
     id: '2',
     content: 'А как это будет работать технически? Нужны подробности.',
     timestamp: '1 час назад',
-    likes: 2
+    likes: 2,
+    dislikes: 0,
+    replies: []
   },
   {
     id: '3',
     content: 'Можно еще добавить мобильное приложение к этому!',
     author: 'Учитель',
     timestamp: '30 мин назад',
-    likes: 8
+    likes: 8,
+    dislikes: 1,
+    replies: []
   }
 ];
 
-export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: PostDetailProps) {
+export function PostDetail({ post, open, onOpenChange, onVote, onAddComment, onAddReply, onCommentVote }: PostDetailProps) {
   const [commentText, setCommentText] = useState('');
   const [commentAuthor, setCommentAuthor] = useState('');
   const [userLiked, setUserLiked] = useState(false);
@@ -116,6 +125,7 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
       const newLikeState = !userLiked;
       voteStorage.setLike(post.id, newLikeState);
       setUserLiked(newLikeState);
+      setUserDisliked(false); // Remove dislike if setting like
       onVote?.(post.id, voteType, newLikeState);
       
       toast({
@@ -127,6 +137,7 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
       const newDislikeState = !userDisliked;
       voteStorage.setDislike(post.id, newDislikeState);
       setUserDisliked(newDislikeState);
+      setUserLiked(false); // Remove like if setting dislike
       onVote?.(post.id, voteType, newDislikeState);
       
       toast({
@@ -163,22 +174,42 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
     });
   };
 
-  const handleCommentLike = (commentId: string) => {
-    const currentLiked = voteStorage.hasLiked(`comment-${commentId}`);
-    const newLikeState = !currentLiked;
-    voteStorage.setLike(`comment-${commentId}`, newLikeState);
+  const handleCommentVote = (commentId: string, voteType: 'like' | 'dislike') => {
+    if (!post) return;
     
-    toast({
-      title: newLikeState ? '👍 Лайк!' : '👍 Лайк убран',
-      description: "Ваш голос учтён",
-      duration: 2000,
-    });
+    if (voteType === 'like') {
+      const currentLiked = voteStorage.hasLiked(`comment-${commentId}`);
+      const newLikeState = !currentLiked;
+      voteStorage.setLike(`comment-${commentId}`, newLikeState);
+      onCommentVote?.(post.id, commentId, voteType, newLikeState);
+      
+      toast({
+        title: newLikeState ? '👍 Лайк!' : '👍 Лайк убран',
+        description: "Ваш голос учтён",
+        duration: 2000,
+      });
+    } else {
+      const currentDisliked = voteStorage.hasDisliked(`comment-${commentId}`);
+      const newDislikeState = !currentDisliked;
+      voteStorage.setDislike(`comment-${commentId}`, newDislikeState);
+      onCommentVote?.(post.id, commentId, voteType, newDislikeState);
+      
+      toast({
+        title: newDislikeState ? '👎 Дизлайк!' : '👎 Дизлайк убран',
+        description: "Ваш голос учтён",
+        duration: 2000,
+      });
+    }
   };
 
   const handleReply = (commentId: string) => {
-    if (!replyText.trim()) return;
+    if (!replyText.trim() || !post) return;
     
-    // Temporarily show in UI - in real app would use onAddComment with reply logic
+    onAddReply?.(post.id, commentId, {
+      content: replyText,
+      author: replyAuthor.trim() || undefined
+    });
+    
     toast({
       title: "Ответ добавлен",
       description: "Спасибо за участие в обсуждении!",
@@ -337,7 +368,7 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleCommentLike(comment.id)}
+                            onClick={() => handleCommentVote(comment.id, 'like')}
                             className={`flex items-center gap-1 transition-colors ${
                               voteStorage.hasLiked(`comment-${comment.id}`)
                                 ? 'text-green-400 bg-green-400/10'
@@ -346,6 +377,20 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
                           >
                             <ThumbsUp className="w-3 h-3" />
                             <span>{comment.likes}</span>
+                          </Button>
+                          
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCommentVote(comment.id, 'dislike')}
+                            className={`flex items-center gap-1 transition-colors ${
+                              voteStorage.hasDisliked(`comment-${comment.id}`)
+                                ? 'text-red-400 bg-red-400/10'
+                                : 'text-muted-foreground hover:text-red-400'
+                            }`}
+                          >
+                            <ThumbsDown className="w-3 h-3" />
+                            <span>{comment.dislikes || 0}</span>
                           </Button>
                           
                           <Button
@@ -394,6 +439,62 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
                                 Ответить
                               </Button>
                             </div>
+                          </div>
+                        )}
+                        
+                        {/* Replies */}
+                        {comment.replies && comment.replies.length > 0 && (
+                          <div className="mt-3 ml-6 space-y-2">
+                            {comment.replies.map((reply, replyIndex) => (
+                              <div key={reply.id} className="p-3 bg-background/20 rounded-lg border border-border/20">
+                                <div className="flex items-start gap-2">
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-xs font-medium border border-primary/10">
+                                    {reply.author ? reply.author.charAt(0) : '?'}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="font-medium text-xs">
+                                        {reply.author || 'Аноним'}
+                                      </span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {reply.timestamp}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-foreground mb-2">
+                                      {reply.content}
+                                    </p>
+                                    <div className="flex items-center gap-2 text-xs">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleCommentVote(reply.id, 'like')}
+                                        className={`flex items-center gap-1 transition-colors h-6 px-2 ${
+                                          voteStorage.hasLiked(`comment-${reply.id}`)
+                                            ? 'text-green-400 bg-green-400/10'
+                                            : 'text-muted-foreground hover:text-green-400'
+                                        }`}
+                                      >
+                                        <ThumbsUp className="w-3 h-3" />
+                                        <span>{reply.likes}</span>
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleCommentVote(reply.id, 'dislike')}
+                                        className={`flex items-center gap-1 transition-colors h-6 px-2 ${
+                                          voteStorage.hasDisliked(`comment-${reply.id}`)
+                                            ? 'text-red-400 bg-red-400/10'
+                                            : 'text-muted-foreground hover:text-red-400'
+                                        }`}
+                                      >
+                                        <ThumbsDown className="w-3 h-3" />
+                                        <span>{reply.dislikes || 0}</span>
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
