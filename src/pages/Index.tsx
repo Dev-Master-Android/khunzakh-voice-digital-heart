@@ -3,6 +3,8 @@ import { Header } from "@/components/Header";
 import { Navigation } from "@/components/Navigation";
 import { PostCard } from "@/components/PostCard";
 import { CreatePostDialog } from "@/components/CreatePostDialog";
+import { PostDetail } from "@/components/PostDetail";
+import { generateId, formatTimeAgo } from "@/lib/utils-school";
 
 interface Post {
   id: string;
@@ -65,6 +67,8 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('popular');
   const [createPostOpen, setCreatePostOpen] = useState(false);
   const [filteredPosts, setFilteredPosts] = useState<Post[]>(posts);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [postDetailOpen, setPostDetailOpen] = useState(false);
 
   useEffect(() => {
     let sorted = [...posts];
@@ -86,7 +90,7 @@ const Index = () => {
 
   const handleCreatePost = (postData: any) => {
     const newPost: Post = {
-      id: Date.now().toString(),
+      id: generateId(),
       title: postData.title,
       content: postData.content,
       category: postData.category,
@@ -94,53 +98,87 @@ const Index = () => {
       dislikes: 0,
       comments: 0,
       author: postData.showName ? postData.authorName : undefined,
-      timestamp: 'только что'
+      timestamp: formatTimeAgo(new Date())
     };
     
     setPosts([newPost, ...posts]);
   };
 
+  const handlePostClick = (post: Post) => {
+    setSelectedPost(post);
+    setPostDetailOpen(true);
+  };
+
+  const handleVote = (postId: string, voteType: 'like' | 'dislike') => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? {
+              ...post,
+              likes: voteType === 'like' ? post.likes + 1 : post.likes - 1,
+              dislikes: voteType === 'dislike' ? post.dislikes + 1 : post.dislikes - 1
+            }
+          : post
+      )
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-background">
+    <div className="min-h-screen bg-gradient-background relative overflow-hidden">
+      {/* Blurred background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-40 right-20 w-48 h-48 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-32 left-1/3 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute bottom-20 right-10 w-28 h-28 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+      </div>
+      
       <Header onCreatePost={() => setCreatePostOpen(true)} />
       
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
       
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          {filteredPosts.map((post, index) => (
-            <div
-              key={post.id}
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <PostCard post={post} />
+      <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {filteredPosts.length > 0 ? (
+          <div className="masonry-grid">
+            {filteredPosts.map((post, index) => (
+              <PostCard 
+                key={post.id} 
+                post={post} 
+                onClick={() => handlePostClick(post)}
+                onVote={handleVote}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="card-glow rounded-2xl p-8 border border-border/30">
+              <div className="text-6xl mb-4">📝</div>
+              <h3 className="text-xl font-semibold mb-2">Пока что тихо...</h3>
+              <p className="text-muted-foreground mb-6">
+                Станьте первым, кто поделится своим мнением!
+              </p>
+              <button
+                onClick={() => setCreatePostOpen(true)}
+                className="button-glow px-6 py-3 rounded-xl font-medium"
+              >
+                Создать первый пост
+              </button>
             </div>
-          ))}
-          
-          {filteredPosts.length === 0 && (
-            <div className="text-center py-12">
-              <div className="card-glow rounded-2xl p-8 border border-border/30">
-                <div className="text-6xl mb-4">📝</div>
-                <h3 className="text-xl font-semibold mb-2">Пока что тихо...</h3>
-                <p className="text-muted-foreground mb-6">
-                  Станьте первым, кто поделится своим мнением!
-                </p>
-                <button
-                  onClick={() => setCreatePostOpen(true)}
-                  className="button-glow px-6 py-3 rounded-xl font-medium"
-                >
-                  Создать первый пост
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </main>
       
       <CreatePostDialog
         open={createPostOpen}
         onOpenChange={setCreatePostOpen}
         onSubmit={handleCreatePost}
+      />
+      
+      <PostDetail
+        post={selectedPost}
+        open={postDetailOpen}
+        onOpenChange={setPostDetailOpen}
+        onVote={handleVote}
       />
     </div>
   );

@@ -56,6 +56,19 @@ export function CreatePostDialog({ open, onOpenChange, onSubmit }: CreatePostDia
       return;
     }
 
+    // Check spam protection
+    const { spamProtection } = require("@/lib/utils-school");
+    if (!spamProtection.canPost()) {
+      const remaining = Math.ceil(spamProtection.getCooldownRemaining() / 1000);
+      toast({
+        title: "Подождите",
+        description: `Можно создать новый пост через ${remaining} секунд`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    spamProtection.recordPost();
     onSubmit(formData);
     setFormData({
       category: '',
