@@ -1,37 +1,59 @@
-// LocalStorage utilities for votes without authentication
+// LocalStorage utilities for independent like/dislike votes
 export const voteStorage = {
-  getVotes: (): { [postId: string]: 'like' | 'dislike' } => {
+  getLikes: (): { [postId: string]: boolean } => {
     try {
-      const votes = localStorage.getItem('schoolVotes');
-      return votes ? JSON.parse(votes) : {};
+      const likes = localStorage.getItem('schoolLikes');
+      return likes ? JSON.parse(likes) : {};
     } catch {
       return {};
     }
   },
 
-  setVote: (postId: string, voteType: 'like' | 'dislike') => {
+  getDislikes: (): { [postId: string]: boolean } => {
     try {
-      const votes = voteStorage.getVotes();
-      votes[postId] = voteType;
-      localStorage.setItem('schoolVotes', JSON.stringify(votes));
+      const dislikes = localStorage.getItem('schoolDislikes');
+      return dislikes ? JSON.parse(dislikes) : {};
     } catch {
-      console.warn('Could not save vote to localStorage');
+      return {};
     }
   },
 
-  removeVote: (postId: string) => {
+  setLike: (postId: string, liked: boolean) => {
     try {
-      const votes = voteStorage.getVotes();
-      delete votes[postId];
-      localStorage.setItem('schoolVotes', JSON.stringify(votes));
+      const likes = voteStorage.getLikes();
+      if (liked) {
+        likes[postId] = true;
+      } else {
+        delete likes[postId];
+      }
+      localStorage.setItem('schoolLikes', JSON.stringify(likes));
     } catch {
-      console.warn('Could not remove vote from localStorage');
+      console.warn('Could not save like to localStorage');
     }
   },
 
-  hasVoted: (postId: string): 'like' | 'dislike' | null => {
-    const votes = voteStorage.getVotes();
-    return votes[postId] || null;
+  setDislike: (postId: string, disliked: boolean) => {
+    try {
+      const dislikes = voteStorage.getDislikes();
+      if (disliked) {
+        dislikes[postId] = true;
+      } else {
+        delete dislikes[postId];
+      }
+      localStorage.setItem('schoolDislikes', JSON.stringify(dislikes));
+    } catch {
+      console.warn('Could not save dislike to localStorage');
+    }
+  },
+
+  hasLiked: (postId: string): boolean => {
+    const likes = voteStorage.getLikes();
+    return !!likes[postId];
+  },
+
+  hasDisliked: (postId: string): boolean => {
+    const dislikes = voteStorage.getDislikes();
+    return !!dislikes[postId];
   }
 };
 

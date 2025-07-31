@@ -14,12 +14,12 @@ interface PostCardProps {
     category: string;
     likes: number;
     dislikes: number;
-    comments: number;
     author?: string;
     timestamp: string;
   };
   onClick?: () => void;
-  onVote?: (postId: string, voteType: 'like' | 'dislike') => void;
+  onVote?: (postId: string, voteType: 'like' | 'dislike', isActive: boolean) => void;
+  commentsCount: number;
 }
 
 const categoryIcons: Record<string, string> = {
@@ -38,13 +38,15 @@ const categoryColors: Record<string, string> = {
   'Успех': 'bg-green-500/20 text-green-400'
 };
 
-export function PostCard({ post, onClick, onVote }: PostCardProps) {
-  const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null);
+export function PostCard({ post, onClick, onVote, commentsCount }: PostCardProps) {
+  const [userLiked, setUserLiked] = useState(false);
+  const [userDisliked, setUserDisliked] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    setUserVote(voteStorage.hasVoted(post.id));
+    setUserLiked(voteStorage.hasLiked(post.id));
+    setUserDisliked(voteStorage.hasDisliked(post.id));
   }, [post.id]);
 
   const handleVote = (e: React.MouseEvent, voteType: 'like' | 'dislike') => {
@@ -55,26 +57,25 @@ export function PostCard({ post, onClick, onVote }: PostCardProps) {
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 300);
 
-    if (userVote === voteType) {
-      // Remove vote if clicking same button
-      voteStorage.removeVote(post.id);
-      setUserVote(null);
-      onVote?.(post.id, voteType);
-    } else {
-      // Set new vote (remove previous vote if exists)
-      const previousVote = userVote;
-      voteStorage.setVote(post.id, voteType);
-      setUserVote(voteType);
-      
-      // If had previous vote, remove it first
-      if (previousVote) {
-        onVote?.(post.id, previousVote);
-      }
-      // Then add new vote
-      onVote?.(post.id, voteType);
+    if (voteType === 'like') {
+      const newLikeState = !userLiked;
+      voteStorage.setLike(post.id, newLikeState);
+      setUserLiked(newLikeState);
+      onVote?.(post.id, voteType, newLikeState);
       
       toast({
-        title: voteType === 'like' ? '👍 Лайк!' : '👎 Дизлайк',
+        title: newLikeState ? '👍 Лайк!' : '👍 Лайк убран',
+        description: "Ваш голос учтён",
+        duration: 2000,
+      });
+    } else {
+      const newDislikeState = !userDisliked;
+      voteStorage.setDislike(post.id, newDislikeState);
+      setUserDisliked(newDislikeState);
+      onVote?.(post.id, voteType, newDislikeState);
+      
+      toast({
+        title: newDislikeState ? '👎 Дизлайк!' : '👎 Дизлайк убран',
         description: "Ваш голос учтён",
         duration: 2000,
       });
@@ -126,10 +127,10 @@ export function PostCard({ post, onClick, onVote }: PostCardProps) {
                     size="sm"
                     onClick={(e) => handleVote(e, 'like')}
                     className={`flex items-center gap-1 transition-all duration-300 ${
-                      userVote === 'like' 
+                      userLiked 
                         ? 'text-green-400 bg-green-400/10' 
                         : 'text-muted-foreground hover:text-green-400'
-                    } ${isAnimating && userVote === 'like' ? 'animate-bounce' : ''}`}
+                    } ${isAnimating && userLiked ? 'animate-bounce' : ''}`}
                   >
                     <ThumbsUp className="w-4 h-4" />
                     <span>{post.likes}</span>
@@ -140,10 +141,10 @@ export function PostCard({ post, onClick, onVote }: PostCardProps) {
                     size="sm"
                     onClick={(e) => handleVote(e, 'dislike')}
                     className={`flex items-center gap-1 transition-all duration-300 ${
-                      userVote === 'dislike' 
+                      userDisliked 
                         ? 'text-red-400 bg-red-400/10' 
                         : 'text-muted-foreground hover:text-red-400'
-                    } ${isAnimating && userVote === 'dislike' ? 'animate-bounce' : ''}`}
+                    } ${isAnimating && userDisliked ? 'animate-bounce' : ''}`}
                   >
                     <ThumbsDown className="w-4 h-4" />
                     <span>{post.dislikes}</span>
@@ -155,7 +156,7 @@ export function PostCard({ post, onClick, onVote }: PostCardProps) {
                     className="flex items-center gap-1 text-muted-foreground hover:text-blue-400 transition-colors"
                   >
                     <MessageCircle className="w-4 h-4" />
-                    <span>{post.comments}</span>
+                    <span>{commentsCount}</span>
                   </Button>
                 </div>
                 

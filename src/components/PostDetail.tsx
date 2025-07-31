@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,14 +39,14 @@ interface PostDetailProps {
     category: string;
     likes: number;
     dislikes: number;
-    comments: number;
+    comments: Comment[];
     author?: string;
     timestamp: string;
   } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onVote?: (postId: string, voteType: 'like' | 'dislike') => void;
-  onAddComment?: (postId: string, comment: Omit<Comment, 'id' | 'timestamp' | 'likes'>) => void;
+  onVote?: (postId: string, voteType: 'like' | 'dislike', isActive: boolean) => void;
+  onAddComment?: (postId: string, comment: { content: string; author?: string }) => void;
 }
 
 const categoryIcons: Record<string, string> = {
@@ -92,24 +92,41 @@ const mockComments: Comment[] = [
 export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: PostDetailProps) {
   const [commentText, setCommentText] = useState('');
   const [commentAuthor, setCommentAuthor] = useState('');
-  const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(
-    post ? voteStorage.hasVoted(post.id) : null
-  );
+  const [userLiked, setUserLiked] = useState(false);
+  const [userDisliked, setUserDisliked] = useState(false);
   const { toast } = useToast();
+  
+  useEffect(() => {
+    if (post) {
+      setUserLiked(voteStorage.hasLiked(post.id));
+      setUserDisliked(voteStorage.hasDisliked(post.id));
+    }
+  }, [post]);
 
   if (!post) return null;
 
   const handleVote = (voteType: 'like' | 'dislike') => {
-    if (userVote === voteType) {
-      voteStorage.removeVote(post.id);
-      setUserVote(null);
-    } else {
-      voteStorage.setVote(post.id, voteType);
-      setUserVote(voteType);
-      onVote?.(post.id, voteType);
+    if (!post) return;
+    
+    if (voteType === 'like') {
+      const newLikeState = !userLiked;
+      voteStorage.setLike(post.id, newLikeState);
+      setUserLiked(newLikeState);
+      onVote?.(post.id, voteType, newLikeState);
       
       toast({
-        title: voteType === 'like' ? '👍 Лайк!' : '👎 Дизлайк',
+        title: newLikeState ? '👍 Лайк!' : '👍 Лайк убран',
+        description: "Ваш голос учтён",
+        duration: 2000,
+      });
+    } else {
+      const newDislikeState = !userDisliked;
+      voteStorage.setDislike(post.id, newDislikeState);
+      setUserDisliked(newDislikeState);
+      onVote?.(post.id, voteType, newDislikeState);
+      
+      toast({
+        title: newDislikeState ? '👎 Дизлайк!' : '👎 Дизлайк убран',
         description: "Ваш голос учтён",
         duration: 2000,
       });
@@ -117,7 +134,7 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
   };
 
   const handleAddComment = () => {
-    if (!commentText.trim()) return;
+    if (!commentText.trim() || !post) return;
     
     onAddComment?.(post.id, {
       content: commentText,
@@ -187,7 +204,7 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
                 variant="ghost"
                 onClick={() => handleVote('like')}
                 className={`flex items-center gap-2 transition-all duration-300 ${
-                  userVote === 'like' 
+                  userLiked 
                     ? 'text-green-400 bg-green-400/10' 
                     : 'text-muted-foreground hover:text-green-400'
                 }`}
@@ -200,7 +217,7 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
                 variant="ghost"
                 onClick={() => handleVote('dislike')}
                 className={`flex items-center gap-2 transition-all duration-300 ${
-                  userVote === 'dislike' 
+                  userDisliked 
                     ? 'text-red-400 bg-red-400/10' 
                     : 'text-muted-foreground hover:text-red-400'
                 }`}
@@ -211,7 +228,7 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
               
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MessageCircle className="w-5 h-5" />
-                <span>{mockComments.length} комментариев</span>
+                <span>{post.comments.length} комментариев</span>
               </div>
               
               <Button
@@ -263,7 +280,7 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment }: P
             
             {/* Comments List */}
             <div className="space-y-3">
-              {mockComments.map((comment, index) => (
+              {post.comments.map((comment, index) => (
                 <Card key={comment.id} className="card-glow border-border/30 animate-fade-up" style={{ animationDelay: `${index * 0.1}s` }}>
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">

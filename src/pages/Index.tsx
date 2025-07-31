@@ -6,6 +6,14 @@ import { CreatePostDialog } from "@/components/CreatePostDialog";
 import { PostDetail } from "@/components/PostDetail";
 import { generateId, formatTimeAgo } from "@/lib/utils-school";
 
+interface Comment {
+  id: string;
+  content: string;
+  author?: string;
+  timestamp: string;
+  likes: number;
+}
+
 interface Post {
   id: string;
   title: string;
@@ -13,7 +21,7 @@ interface Post {
   category: string;
   likes: number;
   dislikes: number;
-  comments: number;
+  comments: Comment[];
   author?: string;
   timestamp: string;
 }
@@ -27,7 +35,15 @@ const initialPosts: Post[] = [
     category: 'Идея',
     likes: 24,
     dislikes: 14,
-    comments: 7,
+    comments: [
+      {
+        id: 'c1',
+        content: 'Отличная идея! Поддерживаю полностью',
+        author: 'Аноним',
+        timestamp: '1 час назад',
+        likes: 3
+      }
+    ],
     timestamp: '2 часа назад'
   },
   {
@@ -37,7 +53,7 @@ const initialPosts: Post[] = [
     category: 'Проблема',
     likes: 18,
     dislikes: 3,
-    comments: 12,
+    comments: [],
     timestamp: '4 часа назад'
   },
   {
@@ -47,7 +63,7 @@ const initialPosts: Post[] = [
     category: 'Предложение',
     likes: 16,
     dislikes: 0,
-    comments: 5,
+    comments: [],
     timestamp: '6 часов назад'
   },
   {
@@ -57,7 +73,7 @@ const initialPosts: Post[] = [
     category: 'Жалоба',
     likes: 10,
     dislikes: 7,
-    comments: 15,
+    comments: [],
     timestamp: '1 день назад'
   }
 ];
@@ -96,7 +112,7 @@ const Index = () => {
       category: postData.category,
       likes: 0,
       dislikes: 0,
-      comments: 0,
+      comments: [],
       author: postData.showName ? postData.authorName : undefined,
       timestamp: formatTimeAgo(new Date())
     };
@@ -109,14 +125,35 @@ const Index = () => {
     setPostDetailOpen(true);
   };
 
-  const handleVote = (postId: string, voteType: 'like' | 'dislike') => {
+  const handleVote = (postId: string, voteType: 'like' | 'dislike', isActive: boolean) => {
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post.id === postId 
           ? {
               ...post,
-              likes: voteType === 'like' ? post.likes + 1 : post.likes,
-              dislikes: voteType === 'dislike' ? post.dislikes + 1 : post.dislikes
+              likes: voteType === 'like' ? (isActive ? post.likes + 1 : post.likes - 1) : post.likes,
+              dislikes: voteType === 'dislike' ? (isActive ? post.dislikes + 1 : post.dislikes - 1) : post.dislikes
+            }
+          : post
+      )
+    );
+  };
+
+  const handleAddComment = (postId: string, commentData: { content: string; author?: string }) => {
+    const newComment: Comment = {
+      id: generateId(),
+      content: commentData.content,
+      author: commentData.author || 'Аноним',
+      timestamp: formatTimeAgo(new Date()),
+      likes: 0
+    };
+
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? {
+              ...post,
+              comments: [...post.comments, newComment]
             }
           : post
       )
@@ -146,6 +183,7 @@ const Index = () => {
                 post={post} 
                 onClick={() => handlePostClick(post)}
                 onVote={handleVote}
+                commentsCount={post.comments.length}
               />
             ))}
           </div>
@@ -179,6 +217,7 @@ const Index = () => {
         open={postDetailOpen}
         onOpenChange={setPostDetailOpen}
         onVote={handleVote}
+        onAddComment={handleAddComment}
       />
     </div>
   );
