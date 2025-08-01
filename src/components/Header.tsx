@@ -79,7 +79,12 @@ export function Header({ onCreatePost }: HeaderProps) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button variant="outline" size="lg" className="border-border/50 hover:border-primary/50">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="border-border/50 hover:border-primary/50 hover:scale-105 transition-all duration-200"
+                  onClick={() => window.location.href = '/auth'}
+                >
                   <User className="w-5 h-5 mr-2" />
                   Войти
                 </Button>
@@ -89,18 +94,35 @@ export function Header({ onCreatePost }: HeaderProps) {
           
           {/* Right side - School image */}
           <div className="relative animate-fade-up" style={{animationDelay: '0.3s'}}>
-            <div className="card-glow rounded-2xl p-2 border border-border/30">
-              <img 
-                src={schoolImage} 
-                alt="МКОУ Хунзахская СОШ №1" 
-                className="w-full h-64 sm:h-80 object-cover rounded-xl"
-              />
+            <div className="card-glow rounded-2xl p-2 border border-border/30 group">
+              <div className="relative overflow-hidden rounded-xl">
+                <img 
+                  src={schoolImage} 
+                  alt="МКОУ Хунзахская СОШ №1" 
+                  className="w-full h-64 sm:h-80 object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                
+                {/* Blurred overlay with school info */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 border border-white/20 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                          <School className="w-3 h-3" />
+                        </div>
+                        <span className="text-sm font-medium">МКОУ Хунзахская СОШ №1</span>
+                      </div>
+                      <p className="text-xs text-white/80">Дагестан, село Хунзах</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
               
-              <div className="absolute bottom-4 left-4 right-4">
+              <div className="absolute bottom-4 left-4 right-4 group-hover:opacity-0 transition-opacity duration-300">
                 <div className="card-glow rounded-xl p-4 border border-border/30">
                   <Button 
                     onClick={onCreatePost}
-                    className="w-full button-glow"
+                    className="w-full button-glow hover:scale-105 transition-all duration-200"
                   >
                     Оставить сообщение
                   </Button>

@@ -156,25 +156,20 @@ All colors MUST be HSL.
     animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
   
-  .masonry-grid {
-    columns: 1;
-    column-gap: 1.5rem;
-    break-inside: avoid-column;
+  /* Mobile-first responsive grid */
+  .bg-gradient-background {
+    background: var(--gradient-background);
   }
   
-  @media (min-width: 640px) {
-    .masonry-grid { columns: 2; }
-  }
-  
-  @media (min-width: 1024px) {
-    .masonry-grid { columns: 3; }
-  }
-  
-  .masonry-item {
-    break-inside: avoid;
-    margin-bottom: 1.5rem;
-    display: inline-block;
-    width: 100%;
+  /* Mobile responsive utilities */
+  @media (max-width: 640px) {
+    .card-hover:hover {
+      transform: translateY(-4px) scale(1.01);
+    }
+    
+    .button-glow:hover {
+      transform: translateY(-1px);
+    }
   }
 }
 

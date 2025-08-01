@@ -20,6 +20,7 @@ interface PostCardProps {
   onClick?: () => void;
   onVote?: (postId: string, voteType: 'like' | 'dislike', isActive: boolean) => void;
   commentsCount: number;
+  userCanVote: boolean;
 }
 
 const categoryIcons: Record<string, string> = {
@@ -38,7 +39,7 @@ const categoryColors: Record<string, string> = {
   'Успех': 'bg-green-500/20 text-green-400'
 };
 
-export function PostCard({ post, onClick, onVote, commentsCount }: PostCardProps) {
+export function PostCard({ post, onClick, onVote, commentsCount, userCanVote }: PostCardProps) {
   const [userLiked, setUserLiked] = useState(false);
   const [userDisliked, setUserDisliked] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -51,6 +52,15 @@ export function PostCard({ post, onClick, onVote, commentsCount }: PostCardProps
 
   const handleVote = (e: React.MouseEvent, voteType: 'like' | 'dislike') => {
     e.stopPropagation();
+    
+    if (!userCanVote) {
+      toast({
+        title: "Требуется авторизация",
+        description: "Войдите в аккаунт, чтобы голосовать",
+        variant: "destructive"
+      });
+      return;
+    }
     
     if (isAnimating) return;
     
@@ -94,7 +104,7 @@ export function PostCard({ post, onClick, onVote, commentsCount }: PostCardProps
   return (
     <div className="masonry-item">
       <Card 
-        className="card-glow card-hover animate-bounce-in group"
+        className="card-glow card-hover animate-bounce-in group cursor-pointer hover:scale-[1.02] transition-all duration-300"
         onClick={onClick}
         style={{ animationDelay: `${Math.random() * 0.3}s` }}
       >
@@ -126,10 +136,10 @@ export function PostCard({ post, onClick, onVote, commentsCount }: PostCardProps
                     variant="ghost"
                     size="sm"
                     onClick={(e) => handleVote(e, 'like')}
-                    className={`flex items-center gap-1 transition-all duration-300 ${
+                    className={`flex items-center gap-1 transition-all duration-300 hover:scale-110 ${
                       userLiked 
-                        ? 'text-green-400 bg-green-400/10' 
-                        : 'text-muted-foreground hover:text-green-400'
+                        ? 'text-green-400 bg-green-400/10 shadow-lg shadow-green-400/20' 
+                        : 'text-muted-foreground hover:text-green-400 hover:bg-green-400/10'
                     } ${isAnimating && userLiked ? 'animate-bounce' : ''}`}
                   >
                     <ThumbsUp className="w-4 h-4" />
@@ -140,10 +150,10 @@ export function PostCard({ post, onClick, onVote, commentsCount }: PostCardProps
                     variant="ghost"
                     size="sm"
                     onClick={(e) => handleVote(e, 'dislike')}
-                    className={`flex items-center gap-1 transition-all duration-300 ${
+                    className={`flex items-center gap-1 transition-all duration-300 hover:scale-110 ${
                       userDisliked 
-                        ? 'text-red-400 bg-red-400/10' 
-                        : 'text-muted-foreground hover:text-red-400'
+                        ? 'text-red-400 bg-red-400/10 shadow-lg shadow-red-400/20' 
+                        : 'text-muted-foreground hover:text-red-400 hover:bg-red-400/10'
                     } ${isAnimating && userDisliked ? 'animate-bounce' : ''}`}
                   >
                     <ThumbsDown className="w-4 h-4" />
@@ -153,7 +163,7 @@ export function PostCard({ post, onClick, onVote, commentsCount }: PostCardProps
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex items-center gap-1 text-muted-foreground hover:text-blue-400 transition-colors"
+                    className="flex items-center gap-1 text-muted-foreground hover:text-blue-400 hover:scale-110 transition-all duration-300"
                   >
                     <MessageCircle className="w-4 h-4" />
                     <span>{commentsCount}</span>
