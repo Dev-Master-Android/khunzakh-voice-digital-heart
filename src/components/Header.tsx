@@ -1,6 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, User, School } from "lucide-react";
+import { PlusCircle, User, School, LogOut } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
 import schoolImage from "@/assets/school-building.jpg";
 
 interface HeaderProps {
@@ -8,6 +16,7 @@ interface HeaderProps {
 }
 
 export function Header({ onCreatePost }: HeaderProps) {
+  const { user, signOut } = useAuth();
   return (
     <div className="relative overflow-hidden">
       {/* Background gradient */}
@@ -46,10 +55,35 @@ export function Header({ onCreatePost }: HeaderProps) {
                 Оставить сообщение
               </Button>
               
-              <Button variant="outline" size="lg" className="border-border/50 hover:border-primary/50">
-                <User className="w-5 h-5 mr-2" />
-                Войти
-              </Button>
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Avatar className="h-10 w-10 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/40 transition-all">
+                      <AvatarImage src="/placeholder.svg" alt="User avatar" />
+                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-foreground">
+                        {user?.email?.charAt(0)?.toUpperCase() || 'У'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="card-glow border-border/50 min-w-48 animate-fade-up"
+                  >
+                    <DropdownMenuItem 
+                      className="text-muted-foreground cursor-pointer hover:text-foreground hover:bg-primary/10 transition-colors"
+                      onClick={signOut}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Выйти
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button variant="outline" size="lg" className="border-border/50 hover:border-primary/50">
+                  <User className="w-5 h-5 mr-2" />
+                  Войти
+                </Button>
+              )}
             </div>
           </div>
           
