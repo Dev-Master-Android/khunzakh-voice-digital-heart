@@ -28,7 +28,11 @@ export function Header({ onCreatePost }: HeaderProps) {
           <div className="space-y-8">
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                 <Badge 
+                  variant="secondary" 
+                  className="bg-primary/10 text-primary border-primary/20 cursor-pointer hover:bg-primary/20 transition-colors"
+                  onClick={() => window.open('https://sh-xunzaxskaya-1-r82.gosweb.gosuslugi.ru/', '_blank')}
+                >
                   <School className="w-3 h-3 mr-1" />
                   МКОУ Хунзахская СОШ №1
                 </Badge>
@@ -94,7 +98,7 @@ export function Header({ onCreatePost }: HeaderProps) {
           
           {/* Right side - School image */}
           <div className="relative animate-fade-up" style={{animationDelay: '0.3s'}}>
-            <div className="card-glow rounded-2xl p-2 border border-border/30 group">
+            <div className="card-glow rounded-2xl p-2 border border-border/30 group cursor-pointer" onClick={() => window.open('https://sh-xunzaxskaya-1-r82.gosweb.gosuslugi.ru/', '_blank')}>
               <div className="relative overflow-hidden rounded-xl">
                 <img 
                   src={schoolImage} 
@@ -103,9 +107,9 @@ export function Header({ onCreatePost }: HeaderProps) {
                 />
                 
                 {/* Blurred overlay with school info */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-100 transition-opacity duration-300">
                   <div className="absolute bottom-4 left-4 right-4">
-                    <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 border border-white/20 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                    <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 border border-white/20 text-white transform translate-y-0 transition-transform duration-300">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
                           <School className="w-3 h-3" />
@@ -115,17 +119,6 @@ export function Header({ onCreatePost }: HeaderProps) {
                       <p className="text-xs text-white/80">Дагестан, село Хунзах</p>
                     </div>
                   </div>
-                </div>
-              </div>
-              
-              <div className="absolute bottom-4 left-4 right-4 group-hover:opacity-0 transition-opacity duration-300">
-                <div className="card-glow rounded-xl p-4 border border-border/30">
-                  <Button 
-                    onClick={onCreatePost}
-                    className="w-full button-glow hover:scale-105 transition-all duration-200"
-                  >
-                    Оставить сообщение
-                  </Button>
                 </div>
               </div>
             </div>

@@ -51,8 +51,42 @@ const Index = () => {
 
   const loadPosts = async () => {
     try {
-      // For now, load empty array since we need to set up the database first
-      setPosts([]);
+      // @ts-ignore
+      const { data, error } = await (supabase as any)
+        .from('posts')
+        .select(`
+          *,
+          comments (*),
+          post_votes (*),
+          comment_votes (*)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedPosts = data?.map((post: any) => ({
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        category: post.category,
+        likes: post.post_votes?.filter((v: any) => v.vote_type === 'like').length || 0,
+        dislikes: post.post_votes?.filter((v: any) => v.vote_type === 'dislike').length || 0,
+        comments: post.comments?.map((comment: any) => ({
+          id: comment.id,
+          content: comment.content,
+          author: comment.author,
+          timestamp: formatTimeAgo(new Date(comment.created_at)),
+          likes: post.comment_votes?.filter((v: any) => v.comment_id === comment.id && v.vote_type === 'like').length || 0,
+          dislikes: post.comment_votes?.filter((v: any) => v.comment_id === comment.id && v.vote_type === 'dislike').length || 0,
+          replies: [],
+          user_id: comment.user_id
+        })) || [],
+        author: post.author,
+        timestamp: formatTimeAgo(new Date(post.created_at)),
+        user_id: post.user_id
+      })) || [];
+
+      setPosts(formattedPosts);
     } catch (error) {
       console.error('Error loading posts:', error);
       toast({
@@ -128,12 +162,31 @@ const Index = () => {
     }
 
     try {
-      // For now, show success message since database needs to be set up first
+      // @ts-ignore
+      const { data, error } = await (supabase as any)
+        .from('posts')
+        .insert([
+          {
+            title: postData.title,
+            content: postData.content,
+            category: postData.category,
+            author: postData.showName ? postData.authorName : null,
+            user_id: user.id
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
       toast({
-        title: "Спасибо!",
-        description: "Ваш голос важен. Сообщение будет опубликовано после настройки базы данных.",
-        className: "bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20"
+        title: "Пост создан!",
+        description: "Ваш пост успешно опубликован",
+        className: "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20"
       });
+
+      // Refresh posts
+      loadPosts();
     } catch (error) {
       console.error('Error creating post:', error);
       toast({
@@ -171,25 +224,40 @@ const Index = () => {
       return;
     }
 
-    // For now, just update local state since database needs to be set up
-    setPosts(prevPosts => 
-      prevPosts.map(post => {
-        if (post.id === postId) {
-          if (voteType === 'like') {
-            return {
-              ...post,
-              likes: isActive ? post.likes + 1 : post.likes - 1
-            };
-          } else {
-            return {
-              ...post,
-              dislikes: isActive ? post.dislikes + 1 : post.dislikes - 1
-            };
-          }
-        }
-        return post;
-      })
-    );
+    try {
+      if (isActive) {
+        // Add vote
+        // @ts-ignore
+        await (supabase as any)
+          .from('post_votes')
+          .insert([
+            {
+              post_id: postId,
+              user_id: user.id,
+              vote_type: voteType
+            }
+          ]);
+      } else {
+        // Remove vote
+        // @ts-ignore
+        await (supabase as any)
+          .from('post_votes')
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_id', user.id)
+          .eq('vote_type', voteType);
+      }
+
+      // Refresh posts to show updated vote counts
+      loadPosts();
+    } catch (error) {
+      console.error('Error voting:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось проголосовать",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleAddComment = async (postId: string, commentData: { content: string; author?: string }) => {
@@ -202,11 +270,36 @@ const Index = () => {
       return;
     }
 
-    // For now, just show success message since database needs to be set up
-    toast({
-      title: "Комментарий добавлен",
-      description: "После настройки базы данных комментарии будут сохраняться",
-    });
+    try {
+      // @ts-ignore
+      const { error } = await (supabase as any)
+        .from('comments')
+        .insert([
+          {
+            post_id: postId,
+            content: commentData.content,
+            author: commentData.author,
+            user_id: user.id
+          }
+        ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Комментарий добавлен",
+        description: "Ваш комментарий успешно опубликован",
+      });
+
+      // Refresh posts to show new comment
+      loadPosts();
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось добавить комментарий",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleAddReply = async (postId: string, commentId: string, reply: { content: string; author?: string }) => {
@@ -219,10 +312,9 @@ const Index = () => {
       return;
     }
 
-    // For now, just show success message since database needs to be set up
     toast({
       title: "Ответ добавлен",
-      description: "После настройки базы данных ответы будут сохраняться",
+      description: "Функция ответов будет добавлена позже",
     });
   };
 
@@ -236,33 +328,37 @@ const Index = () => {
       return;
     }
 
-    // For now, just update local state since database needs to be set up
-    setPosts(prevPosts =>
-      prevPosts.map(post => {
-        if (post.id === postId) {
-          return {
-            ...post,
-            comments: post.comments.map(comment => {
-              if (comment.id === commentId) {
-                if (voteType === 'like') {
-                  return {
-                    ...comment,
-                    likes: isActive ? comment.likes + 1 : comment.likes - 1
-                  };
-                } else {
-                  return {
-                    ...comment,
-                    dislikes: isActive ? comment.dislikes + 1 : comment.dislikes - 1
-                  };
-                }
-              }
-              return comment;
-            })
-          };
-        }
-        return post;
-      })
-    );
+    try {
+      if (isActive) {
+        // @ts-ignore
+        await (supabase as any)
+          .from('comment_votes')
+          .insert([
+            {
+              comment_id: commentId,
+              user_id: user.id,
+              vote_type: voteType
+            }
+          ]);
+      } else {
+        // @ts-ignore
+        await (supabase as any)
+          .from('comment_votes')
+          .delete()
+          .eq('comment_id', commentId)
+          .eq('user_id', user.id)
+          .eq('vote_type', voteType);
+      }
+
+      loadPosts();
+    } catch (error) {
+      console.error('Error voting on comment:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось проголосовать",
+        variant: "destructive"
+      });
+    }
   };
 
   if (loading) {
