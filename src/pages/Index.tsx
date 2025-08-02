@@ -50,6 +50,7 @@ const Index = () => {
   }, []);
 
   const loadPosts = async () => {
+    console.log('Loading posts from database...');
     try {
       // @ts-ignore
       const { data, error } = await (supabase as any)
@@ -62,7 +63,12 @@ const Index = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('Posts data received:', { data, error });
+
+      if (error) {
+        console.error('Error loading posts:', error);
+        throw error;
+      }
 
       const formattedPosts = data?.map((post: any) => ({
         id: post.id,
@@ -86,6 +92,7 @@ const Index = () => {
         user_id: post.user_id
       })) || [];
 
+      console.log('Formatted posts:', formattedPosts);
       setPosts(formattedPosts);
     } catch (error) {
       console.error('Error loading posts:', error);
@@ -152,7 +159,10 @@ const Index = () => {
   };
 
   const handleCreatePost = async (postData: any) => {
+    console.log('Creating post with data:', postData);
+    
     if (!user) {
+      console.log('No user found');
       toast({
         title: "Требуется авторизация",
         description: "Войдите в аккаунт, чтобы создать пост",
@@ -161,7 +171,11 @@ const Index = () => {
       return;
     }
 
+    console.log('User found:', user.id);
+
     try {
+      console.log('Attempting to insert post into database...');
+      
       // @ts-ignore
       const { data, error } = await (supabase as any)
         .from('posts')
@@ -177,7 +191,14 @@ const Index = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      console.log('Database response:', { data, error });
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      console.log('Post created successfully:', data);
 
       toast({
         title: "Пост создан!",
@@ -186,12 +207,13 @@ const Index = () => {
       });
 
       // Refresh posts
+      console.log('Refreshing posts...');
       loadPosts();
     } catch (error) {
       console.error('Error creating post:', error);
       toast({
         title: "Ошибка",
-        description: "Не удалось создать пост",
+        description: `Не удалось создать пост: ${error}`,
         variant: "destructive"
       });
     }

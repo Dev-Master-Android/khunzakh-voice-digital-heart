@@ -9,7 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
-import schoolImage from "@/assets/school-building.jpg";
+// import schoolImage from "@/assets/school-building.jpg";
+const schoolImage = "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=800&h=600&fit=crop";
 
 interface HeaderProps {
   onCreatePost: () => void;
