@@ -218,6 +218,32 @@ const Index = () => {
     }
   };
 
+  // Handle delete post
+  const handleDeletePost = async (postId: string) => {
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Пост удален",
+        description: "Пост успешно удален",
+      });
+      
+      await loadPosts();
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить пост",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleCreatePostClick = () => {
     if (!user) {
       toast({
@@ -421,6 +447,7 @@ const Index = () => {
                 post={post} 
                 onClick={() => handlePostClick(post)}
                 onVote={handleVote}
+                onDelete={handleDeletePost}
                 commentsCount={post.comments.length}
                 userCanVote={!!user}
               />

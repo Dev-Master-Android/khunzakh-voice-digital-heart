@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Heart, MessageCircle, ThumbsUp, ThumbsDown, Flag } from "lucide-react";
+import { Heart, MessageCircle, ThumbsUp, ThumbsDown, Flag, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { voteStorage } from "@/lib/utils-school";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PostCardProps {
   post: {
@@ -16,9 +17,11 @@ interface PostCardProps {
     dislikes: number;
     author?: string;
     timestamp: string;
+    user_id?: string;
   };
   onClick?: () => void;
   onVote?: (postId: string, voteType: 'like' | 'dislike', isActive: boolean) => void;
+  onDelete?: (postId: string) => void;
   commentsCount: number;
   userCanVote: boolean;
 }
@@ -39,11 +42,12 @@ const categoryColors: Record<string, string> = {
   'Успех': 'bg-green-500/20 text-green-400'
 };
 
-export function PostCard({ post, onClick, onVote, commentsCount, userCanVote }: PostCardProps) {
+export function PostCard({ post, onClick, onVote, onDelete, commentsCount, userCanVote }: PostCardProps) {
   const [userLiked, setUserLiked] = useState(false);
   const [userDisliked, setUserDisliked] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     setUserLiked(voteStorage.hasLiked(post.id));
@@ -100,6 +104,15 @@ export function PostCard({ post, onClick, onVote, commentsCount, userCanVote }: 
       duration: 3000,
     });
   };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('Вы уверены, что хотите удалить этот пост?')) {
+      onDelete?.(post.id);
+    }
+  };
+
+  const canDelete = user && post.user_id === user.id;
 
   return (
     <div className="masonry-item">
@@ -170,14 +183,26 @@ export function PostCard({ post, onClick, onVote, commentsCount, userCanVote }: 
                   </Button>
                 </div>
                 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleReport}
-                  className="flex items-center gap-1 text-muted-foreground hover:text-orange-400 transition-colors"
-                >
-                  <Flag className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  {canDelete && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleDelete}
+                      className="flex items-center gap-1 text-muted-foreground hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleReport}
+                    className="flex items-center gap-1 text-muted-foreground hover:text-orange-400 transition-colors"
+                  >
+                    <Flag className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
