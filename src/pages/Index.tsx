@@ -58,8 +58,7 @@ const Index = () => {
         .select(`
           *,
           comments (*),
-          post_votes (*),
-          comment_votes (*)
+          post_votes (*)
         `)
         .order('created_at', { ascending: false });
 
@@ -82,8 +81,8 @@ const Index = () => {
           content: comment.content,
           author: comment.author,
           timestamp: formatTimeAgo(new Date(comment.created_at)),
-          likes: post.comment_votes?.filter((v: any) => v.comment_id === comment.id && v.vote_type === 'like').length || 0,
-          dislikes: post.comment_votes?.filter((v: any) => v.comment_id === comment.id && v.vote_type === 'dislike').length || 0,
+          likes: 0, // Will be fixed later when we add comment voting
+          dislikes: 0, // Will be fixed later when we add comment voting
           replies: [],
           user_id: comment.user_id
         })) || [],
