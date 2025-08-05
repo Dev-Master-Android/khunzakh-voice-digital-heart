@@ -143,43 +143,43 @@ export function PostCard({ post, onClick, onVote, onDelete, commentsCount, userC
                 {post.content}
               </p>
               
-              <div className="flex items-center justify-between text-sm gap-4 min-w-0">
-                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 overflow-x-auto">
+              <div className="flex items-center justify-between text-sm gap-3 min-w-0">
+                <div className="flex items-center gap-1 sm:gap-2 flex-1 min-w-0">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={(e) => handleVote(e, 'like')}
-                    className={`flex items-center gap-1 transition-all duration-300 hover:scale-110 flex-shrink-0 ${
+                    className={`flex items-center gap-1 transition-all duration-300 hover:scale-110 flex-shrink-0 h-7 px-2 text-xs ${
                       userLiked 
                         ? 'text-green-400 bg-green-400/10 shadow-lg shadow-green-400/20' 
                         : 'text-muted-foreground hover:text-green-400 hover:bg-green-400/10'
                     } ${isAnimating && userLiked ? 'animate-bounce' : ''}`}
                   >
-                    <ThumbsUp className="w-4 h-4" />
-                    <span className="hidden xs:inline">{post.likes}</span>
+                    <ThumbsUp className="w-3 h-3" />
+                    <span>{post.likes}</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={(e) => handleVote(e, 'dislike')}
-                    className={`flex items-center gap-1 transition-all duration-300 hover:scale-110 flex-shrink-0 ${
+                    className={`flex items-center gap-1 transition-all duration-300 hover:scale-110 flex-shrink-0 h-7 px-2 text-xs ${
                       userDisliked 
                         ? 'text-red-400 bg-red-400/10 shadow-lg shadow-red-400/20' 
                         : 'text-muted-foreground hover:text-red-400 hover:bg-red-400/10'
                     } ${isAnimating && userDisliked ? 'animate-bounce' : ''}`}
                   >
-                    <ThumbsDown className="w-4 h-4" />
-                    <span className="hidden xs:inline">{post.dislikes}</span>
+                    <ThumbsDown className="w-3 h-3" />
+                    <span>{post.dislikes}</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex items-center gap-1 text-muted-foreground hover:text-blue-400 hover:scale-110 transition-all duration-300 flex-shrink-0"
+                    className="flex items-center gap-1 text-muted-foreground hover:text-blue-400 hover:scale-110 transition-all duration-300 flex-shrink-0 h-7 px-2 text-xs"
                   >
-                    <MessageCircle className="w-4 h-4" />
-                    <span className="hidden xs:inline">{commentsCount}</span>
+                    <MessageCircle className="w-3 h-3" />
+                    <span>{commentsCount}</span>
                   </Button>
                 </div>
                 
