@@ -57,7 +57,7 @@ const Index = () => {
         .from('posts')
         .select(`
           *,
-          comments (*),
+          comments (*, comment_votes (*)),
           post_votes (*)
         `)
         .order('created_at', { ascending: false });
@@ -81,8 +81,8 @@ const Index = () => {
           content: comment.content,
           author: comment.author,
           timestamp: formatTimeAgo(new Date(comment.created_at)),
-          likes: 0, // Will be fixed later when we add comment voting
-          dislikes: 0, // Will be fixed later when we add comment voting
+          likes: comment.comment_votes?.filter((v: any) => v.vote_type === 'like').length || 0,
+          dislikes: comment.comment_votes?.filter((v: any) => v.vote_type === 'dislike').length || 0,
           replies: [],
           user_id: comment.user_id
         })) || [],
@@ -348,7 +348,7 @@ const Index = () => {
             .from('posts')
             .select(`
               *,
-              comments (*),
+              comments (*, comment_votes (*)),
               post_votes (*)
             `)
             .eq('id', postId)
@@ -367,8 +367,8 @@ const Index = () => {
                     content: comment.content,
                     author: comment.author,
                     timestamp: formatTimeAgo(new Date(comment.created_at)),
-                    likes: 0,
-                    dislikes: 0,
+                    likes: comment.comment_votes?.filter((v: any) => v.vote_type === 'like').length || 0,
+                    dislikes: comment.comment_votes?.filter((v: any) => v.vote_type === 'dislike').length || 0,
                     replies: [],
                     user_id: comment.user_id
                   })) || [],
@@ -439,7 +439,50 @@ const Index = () => {
           .eq('vote_type', voteType);
       }
 
-      loadPosts();
+      // Refresh posts first
+      await loadPosts();
+      
+      // Update selected post with fresh comment data
+      if (selectedPost && selectedPost.id === postId) {
+        setTimeout(() => {
+          // @ts-ignore
+          (supabase as any)
+            .from('posts')
+            .select(`
+              *,
+              comments (*, comment_votes (*)),
+              post_votes (*)
+            `)
+            .eq('id', postId)
+            .single()
+            .then(({ data }) => {
+              if (data) {
+                const updatedPost = {
+                  id: data.id,
+                  title: data.title,
+                  content: data.content,
+                  category: data.category,
+                  likes: data.post_votes?.filter((v: any) => v.vote_type === 'like').length || 0,
+                  dislikes: data.post_votes?.filter((v: any) => v.vote_type === 'dislike').length || 0,
+                  comments: data.comments?.map((comment: any) => ({
+                    id: comment.id,
+                    content: comment.content,
+                    author: comment.author,
+                    timestamp: formatTimeAgo(new Date(comment.created_at)),
+                    likes: comment.comment_votes?.filter((v: any) => v.vote_type === 'like').length || 0,
+                    dislikes: comment.comment_votes?.filter((v: any) => v.vote_type === 'dislike').length || 0,
+                    replies: [],
+                    user_id: comment.user_id
+                  })) || [],
+                  author: data.author,
+                  timestamp: formatTimeAgo(new Date(data.created_at)),
+                  user_id: data.user_id
+                };
+                setSelectedPost(updatedPost);
+              }
+            });
+        }, 100);
+      }
     } catch (error) {
       console.error('Error voting on comment:', error);
       toast({
