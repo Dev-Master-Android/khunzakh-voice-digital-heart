@@ -337,8 +337,50 @@ const Index = () => {
         description: "Ваш комментарий успешно опубликован",
       });
 
-      // Refresh posts to show new comment
-      loadPosts();
+      // Refresh posts first
+      await loadPosts();
+      
+      // Then update selected post immediately after loadPosts completes
+      setTimeout(() => {
+        if (selectedPost && selectedPost.id === postId) {
+          // @ts-ignore
+          (supabase as any)
+            .from('posts')
+            .select(`
+              *,
+              comments (*),
+              post_votes (*)
+            `)
+            .eq('id', postId)
+            .single()
+            .then(({ data }) => {
+              if (data) {
+                const updatedPost = {
+                  id: data.id,
+                  title: data.title,
+                  content: data.content,
+                  category: data.category,
+                  likes: data.post_votes?.filter((v: any) => v.vote_type === 'like').length || 0,
+                  dislikes: data.post_votes?.filter((v: any) => v.vote_type === 'dislike').length || 0,
+                  comments: data.comments?.map((comment: any) => ({
+                    id: comment.id,
+                    content: comment.content,
+                    author: comment.author,
+                    timestamp: formatTimeAgo(new Date(comment.created_at)),
+                    likes: 0,
+                    dislikes: 0,
+                    replies: [],
+                    user_id: comment.user_id
+                  })) || [],
+                  author: data.author,
+                  timestamp: formatTimeAgo(new Date(data.created_at)),
+                  user_id: data.user_id
+                };
+                setSelectedPost(updatedPost);
+              }
+            });
+        }
+      }, 100);
     } catch (error) {
       console.error('Error adding comment:', error);
       toast({
