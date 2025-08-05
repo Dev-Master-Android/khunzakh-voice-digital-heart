@@ -143,8 +143,8 @@ export function PostCard({ post, onClick, onVote, onDelete, commentsCount, userC
                 {post.content}
               </p>
               
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between text-sm gap-2 min-w-0">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -183,13 +183,13 @@ export function PostCard({ post, onClick, onVote, onDelete, commentsCount, userC
                   </Button>
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   {canDelete && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={handleDelete}
-                      className="flex items-center gap-1 text-muted-foreground hover:text-red-400 transition-colors"
+                      className="flex items-center justify-center w-8 h-8 p-0 text-muted-foreground hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -198,7 +198,7 @@ export function PostCard({ post, onClick, onVote, onDelete, commentsCount, userC
                     variant="ghost"
                     size="sm"
                     onClick={handleReport}
-                    className="flex items-center gap-1 text-muted-foreground hover:text-orange-400 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 p-0 text-muted-foreground hover:text-orange-400 transition-colors"
                   >
                     <Flag className="w-4 h-4" />
                   </Button>
