@@ -419,6 +419,18 @@ const Index = () => {
 
     try {
       if (isActive) {
+        // Remove the opposite vote first if it exists
+        const oppositeVoteType = voteType === 'like' ? 'dislike' : 'like';
+        
+        // @ts-ignore
+        await (supabase as any)
+          .from('comment_votes')
+          .delete()
+          .eq('comment_id', commentId)
+          .eq('user_id', user.id)
+          .eq('vote_type', oppositeVoteType);
+        
+        // Add the new vote
         // @ts-ignore
         await (supabase as any)
           .from('comment_votes')
@@ -430,6 +442,7 @@ const Index = () => {
             }
           ]);
       } else {
+        // Remove the current vote
         // @ts-ignore
         await (supabase as any)
           .from('comment_votes')
