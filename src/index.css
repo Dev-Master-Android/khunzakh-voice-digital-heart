@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -41,7 +42,13 @@ All colors MUST be HSL.
 
     /* Custom gradients and effects */
     --gradient-primary: linear-gradient(135deg, hsl(340 75% 45%), hsl(270 60% 50%));
-    --gradient-background: radial-gradient(ellipse at top, hsl(260 40% 8%), hsl(240 15% 4%));
+    --gradient-background: linear-gradient(135deg, 
+      #1a0b2e 0%,
+      #16213e 25%,
+      #0f3460 50%,
+      #533a7d 75%,
+      #1a0b2e 100%
+    );
     --gradient-card: linear-gradient(135deg, hsla(240, 12%, 8%, 0.6), hsla(240, 15%, 10%, 0.8));
     --shadow-glow: 0 10px 40px -12px hsl(340 75% 45% / 0.3);
     --shadow-card: 0 20px 60px -12px hsl(240 15% 2% / 0.8);
@@ -105,26 +112,17 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    background: 
-      url('/lovable-uploads/95770714-5681-4417-927b-e6424250f79b.png') no-repeat center center fixed,
-      linear-gradient(135deg, 
-        rgba(26, 11, 46, 0.8) 0%,
-        rgba(22, 33, 62, 0.8) 25%,
-        rgba(15, 52, 96, 0.8) 50%,
-        rgba(83, 58, 125, 0.8) 75%,
-        rgba(26, 11, 46, 0.8) 100%
-      );
-    background-size: cover;
+    background: var(--gradient-background);
+    background-attachment: fixed;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   }
 }
 
 @layer components {
   .card-glow {
-    background: var(--glass-card);
-    box-shadow: var(--glass-shadow);
-    backdrop-filter: var(--glass-backdrop);
-    border: 1px solid var(--glass-border);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
     overflow: hidden;
   }
@@ -142,9 +140,10 @@ All colors MUST be HSL.
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s ease;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s ease;
     z-index: 1;
+    pointer-events: none;
   }
   
   .card-hover:hover::before {
@@ -155,9 +154,10 @@ All colors MUST be HSL.
     transform: translateY(-8px) scale(1.02);
     box-shadow: 
       0 30px 80px -12px rgba(31, 38, 135, 0.5),
-      0 0 0 1px rgba(255, 255, 255, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.2),
       inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px) saturate(200%);
+    backdrop-filter: blur(25px) saturate(200%);
+    border-color: rgba(255, 255, 255, 0.2);
   }
   
   .card-hover:active {
@@ -174,6 +174,29 @@ All colors MUST be HSL.
   .button-glow:hover {
     transform: translateY(-2px);
     box-shadow: 0 15px 50px -12px hsl(340 75% 45% / 0.5);
+  }
+
+  .nav-tab {
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition-smooth);
+  }
+
+  .nav-tab::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s ease;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .nav-tab:hover::before {
+    left: 100%;
   }
   
   .animate-fade-up {
@@ -197,13 +220,13 @@ All colors MUST be HSL.
   .glass-header {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08));
     backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   .glass-navigation {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
     backdrop-filter: blur(15px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   /* Mobile responsive utilities */

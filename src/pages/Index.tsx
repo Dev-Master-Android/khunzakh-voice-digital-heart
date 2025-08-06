@@ -43,11 +43,44 @@ const Index = () => {
   const [postDetailOpen, setPostDetailOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userPostVotes, setUserPostVotes] = useState<{[postId: string]: 'like' | 'dislike'}>({});
 
   // Load posts from Supabase
   useEffect(() => {
     loadPosts();
   }, []);
+
+  // Load user's post votes when user changes
+  useEffect(() => {
+    if (user) {
+      loadUserPostVotes();
+    } else {
+      setUserPostVotes({});
+    }
+  }, [user]);
+
+  const loadUserPostVotes = async () => {
+    if (!user) return;
+    
+    try {
+      // @ts-ignore
+      const { data, error } = await (supabase as any)
+        .from('post_votes')
+        .select('post_id, vote_type')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const votesMap: {[postId: string]: 'like' | 'dislike'} = {};
+      data?.forEach((vote: any) => {
+        votesMap[vote.post_id] = vote.vote_type;
+      });
+      
+      setUserPostVotes(votesMap);
+    } catch (error) {
+      console.error('Error loading user post votes:', error);
+    }
+  };
 
   const loadPosts = async () => {
     console.log('Loading posts from database...');
@@ -272,8 +305,16 @@ const Index = () => {
     }
 
     try {
+      // Remove any existing vote first
+      // @ts-ignore
+      await (supabase as any)
+        .from('post_votes')
+        .delete()
+        .eq('post_id', postId)
+        .eq('user_id', user.id);
+
       if (isActive) {
-        // Add vote
+        // Add new vote
         // @ts-ignore
         await (supabase as any)
           .from('post_votes')
@@ -284,15 +325,16 @@ const Index = () => {
               vote_type: voteType
             }
           ]);
+
+        // Update local state immediately
+        setUserPostVotes(prev => ({ ...prev, [postId]: voteType }));
       } else {
-        // Remove vote
-        // @ts-ignore
-        await (supabase as any)
-          .from('post_votes')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', user.id)
-          .eq('vote_type', voteType);
+        // Remove from local state
+        setUserPostVotes(prev => {
+          const newState = { ...prev };
+          delete newState[postId];
+          return newState;
+        });
       }
 
       // Refresh posts to show updated vote counts
@@ -548,6 +590,8 @@ const Index = () => {
                 onDelete={handleDeletePost}
                 commentsCount={post.comments.length}
                 userCanVote={!!user}
+                userLiked={userPostVotes[post.id] === 'like'}
+                userDisliked={userPostVotes[post.id] === 'dislike'}
               />
             ))}
           </div>
