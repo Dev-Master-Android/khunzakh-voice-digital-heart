@@ -33,7 +33,7 @@ All colors MUST be HSL.
     --destructive: 0 75% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 8% 18%;
+    --border: 240 8% 18% / 0.3;
     --input: 240 8% 15%;
     --ring: 340 75% 45%;
 
@@ -46,6 +46,12 @@ All colors MUST be HSL.
     --shadow-glow: 0 10px 40px -12px hsl(340 75% 45% / 0.3);
     --shadow-card: 0 20px 60px -12px hsl(240 15% 2% / 0.8);
     --blur-backdrop: blur(20px) saturate(180%);
+    
+    /* Glass morphism effects */
+    --glass-card: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    --glass-backdrop: blur(15px) saturate(180%);
     
     /* Animation durations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -99,33 +105,59 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(135deg, 
-      #1a0b2e 0%,
-      #16213e 25%,
-      #0f3460 50%,
-      #533a7d 75%,
-      #1a0b2e 100%
-    );
+    background: 
+      url('/lovable-uploads/95770714-5681-4417-927b-e6424250f79b.png') no-repeat center center fixed,
+      linear-gradient(135deg, 
+        rgba(26, 11, 46, 0.8) 0%,
+        rgba(22, 33, 62, 0.8) 25%,
+        rgba(15, 52, 96, 0.8) 50%,
+        rgba(83, 58, 125, 0.8) 75%,
+        rgba(26, 11, 46, 0.8) 100%
+      );
+    background-size: cover;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   }
 }
 
 @layer components {
   .card-glow {
-    background: var(--gradient-card);
-    box-shadow: var(--shadow-card);
-    backdrop-filter: var(--blur-backdrop);
-    border: 1px solid hsla(240, 8%, 18%, 0.3);
+    background: var(--glass-card);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    position: relative;
+    overflow: hidden;
   }
   
   .card-hover {
     transition: var(--transition-spring);
     cursor: pointer;
+    position: relative;
+  }
+  
+  .card-hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+    z-index: 1;
+  }
+  
+  .card-hover:hover::before {
+    left: 100%;
   }
   
   .card-hover:hover {
     transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 30px 80px -12px hsl(240 15% 2% / 0.9), 0 0 0 1px hsl(340 75% 45% / 0.3);
+    box-shadow: 
+      0 30px 80px -12px rgba(31, 38, 135, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.3),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px) saturate(200%);
   }
   
   .card-hover:active {
@@ -159,6 +191,19 @@ All colors MUST be HSL.
   /* Mobile-first responsive grid */
   .bg-gradient-background {
     background: var(--gradient-background);
+  }
+  
+  /* Glass morphism utilities */
+  .glass-header {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08));
+    backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  
+  .glass-navigation {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    backdrop-filter: blur(15px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
   }
   
   /* Mobile responsive utilities */
