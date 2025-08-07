@@ -43,11 +43,9 @@ All colors MUST be HSL.
     /* Custom gradients and effects */
     --gradient-primary: linear-gradient(135deg, hsl(330 75% 40%), hsl(330 80% 50%));
     --gradient-background: linear-gradient(135deg, 
-      #0f0620 0%,
-      #1a1040 25%,
-      #0a2540 50%,
-      #4d1b2d 75%,
-      #0f0620 100%
+      #180340 0%,
+      #200F3C 50%,
+      #310A27 100%
     );
     --gradient-card: linear-gradient(135deg, hsla(240, 12%, 8%, 0.6), hsla(240, 15%, 10%, 0.8));
     --shadow-glow: 0 10px 40px -12px hsl(330 75% 40% / 0.3);

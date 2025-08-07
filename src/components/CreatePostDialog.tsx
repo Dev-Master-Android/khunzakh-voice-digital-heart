@@ -88,7 +88,7 @@ export function CreatePostDialog({ open, onOpenChange, onSubmit }: CreatePostDia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="card-glow border border-border/50 max-w-2xl animate-scale-in">
+      <DialogContent className="card-glow max-w-2xl animate-scale-in">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
             <Lightbulb className="w-6 h-6 text-primary" />
@@ -105,7 +105,7 @@ export function CreatePostDialog({ open, onOpenChange, onSubmit }: CreatePostDia
               <SelectTrigger className="bg-background/50 border-border/50 focus:border-primary/50">
                 <SelectValue placeholder="Выберите категорию" />
               </SelectTrigger>
-              <SelectContent className="card-glow border-border/50">
+              <SelectContent className="card-glow">
                 {categories.map((cat) => (
                   <SelectItem key={cat.value} value={cat.value} className="hover:bg-primary/10">
                     <div className="flex items-center gap-2">
@@ -176,7 +176,7 @@ export function CreatePostDialog({ open, onOpenChange, onSubmit }: CreatePostDia
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 border-border/50 hover:border-primary/50"
+              className="flex-1"
             >
               Отмена
             </Button>

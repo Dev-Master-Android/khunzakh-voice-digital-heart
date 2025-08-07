@@ -223,7 +223,7 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment, onA
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="card-glow border border-border/50 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
+      <DialogContent className="card-glow max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
         <DialogHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-3 text-2xl">
@@ -312,7 +312,7 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment, onA
             </h3>
             
             {/* Add Comment Form */}
-            <Card className="card-glow border-border/30">
+            <Card className="card-glow">
               <CardContent className="p-4 space-y-4">
                 <Textarea
                   value={commentText}
@@ -343,7 +343,7 @@ export function PostDetail({ post, open, onOpenChange, onVote, onAddComment, onA
             {/* Comments List */}
             <div className="space-y-3">
               {post.comments.map((comment, index) => (
-                <Card key={comment.id} className="card-glow border-border/30 animate-fade-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                <Card key={comment.id} className="card-glow animate-fade-up" style={{ animationDelay: `${index * 0.1}s` }}>
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-sm font-medium border border-primary/20">
