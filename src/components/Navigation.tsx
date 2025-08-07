@@ -22,7 +22,7 @@ export function Navigation({ activeTab, onTabChange, selectedCategory, onCategor
     <div className="sticky top-0 z-50 glass-header">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
-          <div className="flex glass-navigation rounded-xl p-1">
+          <div className="flex card-glow rounded-xl p-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -49,7 +49,7 @@ export function Navigation({ activeTab, onTabChange, selectedCategory, onCategor
               className={`nav-tab px-4 py-2 rounded-full text-sm transition-all duration-300 hover:scale-105 relative z-10 ${
                 !selectedCategory 
                   ? 'bg-primary text-primary-foreground button-glow' 
-                  : 'glass-navigation text-muted-foreground hover:text-foreground hover:bg-primary/20'
+                  : 'card-glow text-muted-foreground hover:text-foreground hover:bg-primary/20'
               }`}
             >
               Все категории
@@ -61,7 +61,7 @@ export function Navigation({ activeTab, onTabChange, selectedCategory, onCategor
                 className={`nav-tab px-4 py-2 rounded-full text-sm transition-all duration-300 hover:scale-105 relative z-10 ${
                   selectedCategory === category 
                     ? 'bg-primary text-primary-foreground button-glow' 
-                    : 'glass-navigation text-muted-foreground hover:text-foreground hover:bg-primary/20'
+                    : 'card-glow text-muted-foreground hover:text-foreground hover:bg-primary/20'
                 }`}
               >
                 {category}

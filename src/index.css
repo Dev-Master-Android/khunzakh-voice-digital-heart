@@ -41,7 +41,7 @@ All colors MUST be HSL.
     --radius: 1rem;
 
     /* Custom gradients and effects */
-    --gradient-primary: linear-gradient(135deg, hsl(330 75% 40%), hsl(330 80% 50%));
+    --gradient-primary: linear-gradient(135deg, #B5175B, #8B2A7A);
     --gradient-background: linear-gradient(135deg, 
       #180340 0%,
       #200F3C 50%,
