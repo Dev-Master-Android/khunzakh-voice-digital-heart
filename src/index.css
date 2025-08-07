@@ -41,12 +41,12 @@ All colors MUST be HSL.
     --radius: 1rem;
 
     /* Custom gradients and effects */
-    --gradient-primary: linear-gradient(135deg, hsl(330 75% 40%), hsl(330 70% 45%));
+    --gradient-primary: linear-gradient(135deg, hsl(330 75% 40%), hsl(330 80% 50%));
     --gradient-background: linear-gradient(135deg, 
       #0f0620 0%,
       #1a1040 25%,
       #0a2540 50%,
-      #2d1b4d 75%,
+      #4d1b2d 75%,
       #0f0620 100%
     );
     --gradient-card: linear-gradient(135deg, hsla(240, 12%, 8%, 0.6), hsla(240, 15%, 10%, 0.8));
