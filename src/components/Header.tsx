@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 // import schoolImage from "@/assets/school-building.jpg";
-const schoolImage = "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=800&h=600&fit=crop";
+const schoolImage = "https://sh-xunzaxskaya-1-r82.gosweb.gosuslugi.ru/netcat_files/22/244/4970c5f6_f297_4109_9b8c_99c2b418ab5b.jpeg";
 
 interface HeaderProps {
   onCreatePost: () => void;
