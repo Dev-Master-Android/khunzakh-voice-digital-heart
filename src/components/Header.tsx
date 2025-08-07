@@ -22,7 +22,7 @@ export function Header({ onCreatePost }: HeaderProps) {
   return (
     <div className="relative overflow-hidden">
       {/* Background gradient */}
-      <div className="absolute inset-0" style={{background: '#180340'}} />
+      <div className="absolute inset-0" style={{background: '#10022C'}} />
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
